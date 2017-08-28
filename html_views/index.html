@@ -11,17 +11,42 @@
 </head>
 
 <body>
-    <div id="app" :title="message">
-        鼠标悬停几秒钟查看此处动态绑定的提示信息！
+    <div id="app">
+        <div :class="classObj">鼠标悬停几秒钟查看此处动态绑定的提示信息！</div>
+        <p @click='add'>{{a}}</p>
+        <p>{{ad}}</p>
     </div>
     <script src="js/jquery.min.js"></script>
     <script src="js/vue.js"></script>
     <script>
-    var app = new Vue({
+    var html = `<h2>template</h2>`
+    var vm = new Vue({
         el: '#app',
         data: {
-            message: 'eventown' + new Date() ,
-            name:'acitve'
+            message: 'eventown' + new Date(),
+            name: 'active',
+            a: 1,
+            isActive: true,
+            error: null
+        },
+        // render: function(createElement) {
+        //     return createElement('ul', { class: 'style' }, [createElement('li', '原因是')])
+        // },
+        methods: {
+            add: function() {
+                this.a++
+            }
+        },
+        computed: {
+            classObj: function() {
+                return {
+                    active: this.isActive && !this.error,
+                    'text-danger': !this.error ,
+                }
+            },
+            ad:function(){
+                return this.a*50
+            }
         }
     })
     </script>

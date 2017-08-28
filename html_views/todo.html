@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>todoList</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link href="semantic.css" rel="stylesheet">
+    <script src="js/vue.js"></script>
+    <style type="text/css" media="screen">
+    .pl-n {
+        padding-left: 0 !important;
+    }
+
+    .pull-right {
+        float: right;
+    }
+
+    .mt-xs {
+        margin-top: .5em !important;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="ui inverted menu big">
+            <div class="ui container">
+                <span class="header item pl-n">最近的工作任务</span>
+            </div>
+        </div>
+        <div class="ui divider hidden"></div>
+        <div class="ui container" id="main">
+            <h4 class="ui header">
+                添加任务：
+            </h4>
+            <div class="ui form big">
+                <div class="field">
+                    <input type="text" placeholder="添加一个任务..." v-model="todo" @keyup.enter='addTodo'>
+                </div>
+            </div>
+            <h5 class="ui red header mt-xs" v-show="list.length">{{filter}}个任务未完成</h5>
+            <div class="ui divider hidden"></div>
+            <div class="ui middle aligned two column  grid">
+                <div class="column">
+                    <h4 class="ui header">任务列表：</h4></div>
+                <div class="right aligned column" v-show="list.length">
+                    <div class="ui basic buttons mini">
+                        <a href="#all" class="ui button">所有任务</a>
+                        <a href="#way" class="ui button">未完成任务</a>
+                        <a href="#over" class="ui button">已完成任务</a>
+                    </div>
+                </div>
+            </div>
+            <div class="ui secondary segment" v-show="!list.length">
+                <p>还没有添加任何任务</p>
+            </div>
+            <div class="ui segment" :class="{disabled:item.state}" v-for="item in filterItem">
+                <a href="###" class="pull-right" @click='delTodo(item)'><i class="close icon"></i></a>
+                <div class="ui floated checkbox">
+                    <input type="checkbox" name="example" v-model="item.state">
+                    <label>
+                        &nbsp;
+                    </label>
+                </div>
+                <div class="ui transparent  input" :class="{disabled:item !== activeItem}" @dblclick="editTitle(item)">
+                    <input type="text" v-model="item.title" v-focus="activeItem === item" @blur="saveTitle" @keyup.enter="saveTitle" @keyup.esc="backTitle(item)">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    let storage = {
+        set: function(k, v) {
+            localStorage.setItem(k, JSON.stringify(v))
+        },
+        get: function(k, v) {
+            return JSON.parse(localStorage.getItem(k)) || [];
+        }
+    }
+    //let data = [{ title: '会鸽旧版维护', state: false }, { title: '会鸽改版', state: true }]
+    let data = storage.get('eventdove')
+    let vm = new Vue({
+        el: '#main',
+        data: {
+            list: data,
+            todo: '',
+            activeItem: '',
+            cancelItem: '',
+            active: 'all'
+        },
+        watch: {
+            list: {
+                handler: function() {
+                    storage.set('eventdove', this.list)
+                },
+                deep: true
+            }
+        },
+        methods: {
+            addTodo() {
+                this.list.push({
+                    title: this.todo,
+                    state: false
+                })
+                this.todo = ''
+            },
+            delTodo(item) {
+                let index = this.list.indexOf(item)
+                this.list.splice(index, 1)
+            },
+            editTitle(item) {
+                this.cancelItem = item.title
+                this.activeItem = item
+            },
+            saveTitle() {
+                this.activeItem = ''
+            },
+            backTitle(item) {
+                item.title = this.cancelItem
+                this.activeItem = ''
+            }
+        },
+        computed: {
+            filter() {
+                return this.list.filter(function(item) {
+                    return !item.state
+                }).length
+            },
+            filterItem() {
+                let filter = {
+                    all(list) {
+                        return list
+                    },
+                    way(list) {
+                        return list.filter(function(item) {
+                            return !item.state
+                        })
+                    },
+                    over(list) {
+                        return list.filter(function(item) {
+                            return item.state
+                        })
+                    }
+                }
+                return filter[this.active] ? filter[this.active](data) : data
+            }
+        },
+        directives: {
+            focus: {
+                update: function(el, binding) {
+                    if (binding.value) {
+                        el.focus();
+                    }
+
+                }
+            }
+        }
+    })
+
+    function watch() {
+        let hash = location.hash.slice(1)
+        vm.active = hash
+        console.log(hash)
+    }
+    window.addEventListener('hashchange', watch)
+    </script>
+</body>
+
+</html>
